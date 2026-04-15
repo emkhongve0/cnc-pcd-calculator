@@ -6,7 +6,7 @@ import { SummaryCard } from './SummaryCard';
 import { PrecisionPanel } from './PrecisionPanel';
 import { CoordinateExample } from './CoordinateExample';
 import { mechanicalMath } from '../../utils/mathPhysics';
-import type { Hole, Origin, SnapPoint } from '../../App';
+import type {Origin, SnapPoint } from '../../App';
 
 const BoltCircleCalc: React.FC = () => {
   // 1. Quản lý trạng thái (State)
