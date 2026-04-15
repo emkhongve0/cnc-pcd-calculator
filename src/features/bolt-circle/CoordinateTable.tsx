@@ -1,23 +1,10 @@
+// src/features/bolt-circle/CoordinateTable.tsx
 
-// Import các component UI dùng chung
 import { Card } from '../../components/ui/Card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
 import { Copy, Download } from 'lucide-react';
-
-// 1. Định nghĩa Kiểu dữ liệu (Interface)
-export interface Hole {
-  angle: number;
-  x: number;          // Tọa độ tuyệt đối (để vẽ)
-  y: number;          // Tọa độ tuyệt đối (để vẽ)
-  relativeX: number; // Tọa độ tương đối (cho G-code)
-  relativeY: number; // Tọa độ tương đối (cho G-code)
-}
-
-export interface Origin {
-  x: number;
-  y: number;
-}
+import type { Hole, Origin } from '../../App';
 
 type CoordinateTableProps = {
   holes: Hole[];
@@ -25,10 +12,8 @@ type CoordinateTableProps = {
   customOrigin: Origin;
 };
 
-// 2. Định nghĩa Component chính
 export function CoordinateTable({ holes, originMode, customOrigin }: CoordinateTableProps) {
   
-  // Hàm định dạng số để hiển thị đẹp (ví dụ: 20.000 -> 20)
   const formatNumber = (num: number): string => {
     if (Math.abs(num - Math.round(num)) < 0.001) {
       return Math.round(num).toString();
@@ -36,88 +21,96 @@ export function CoordinateTable({ holes, originMode, customOrigin }: CoordinateT
     return parseFloat(num.toFixed(3)).toString();
   };
 
-  // Tính khoảng cách từ lỗ đến gốc tọa độ hiện tại
   const calculateDistance = (rx: number, ry: number): number => {
     return Math.sqrt(rx ** 2 + ry ** 2);
   };
 
-  // Hàm Copy dữ liệu để dán vào Excel hoặc Notepad
   const copyToClipboard = () => {
-    let text = 'Hole\tAngle (°)\tX (mm)\tY (mm)\tDist (mm)\n';
+    let text = 'Hole\tAngle\tX\tY\n';
     holes.forEach((h, i) => {
-      const dist = calculateDistance(h.relativeX, h.relativeY);
-      text += `${i + 1}\t${h.angle.toFixed(1)}\t${formatNumber(h.relativeX)}\t${formatNumber(h.relativeY)}\t${formatNumber(dist)}\n`;
+      text += `${i + 1}\t${h.angle.toFixed(1)}\t${formatNumber(h.relativeX)}\t${formatNumber(h.relativeY)}\n`;
     });
     navigator.clipboard.writeText(text);
-    alert("Đã sao chép bảng tọa độ!");
+    alert("Đã sao chép!");
   };
 
-  // Hàm tải file CSV
   const downloadCSV = () => {
-    let csv = 'Hole,Angle,X,Y,Distance\n';
+    let csv = 'Hole,Angle,X,Y\n';
     holes.forEach((h, i) => {
-      const dist = calculateDistance(h.relativeX, h.relativeY);
-      csv += `${i + 1},${h.angle.toFixed(2)},${h.relativeX},${h.relativeY},${dist}\n`;
+      csv += `${i + 1},${h.angle.toFixed(2)},${h.relativeX},${h.relativeY}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'toa-do-pcd.csv';
+    a.download = 'pcd-coords.csv';
     a.click();
   };
 
   return (
-    <Card className="p-6 bg-white shadow-md">
-      <div className="flex items-center justify-between mb-6">
+    // p-3 cho mobile, p-6 cho desktop
+    <Card className="p-3 sm:p-6 bg-white shadow-md border-none sm:border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Bảng tọa độ xuất (G-Code)</h2>
-          <p className="text-xs text-gray-500 mt-1">
-            Gốc tọa độ hiện tại: <span className="font-mono font-bold text-blue-600">
+          <h2 className="text-base sm:text-lg font-bold text-gray-900">Bảng tọa độ (G-Code)</h2>
+          <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
+            Gốc: <span className="font-mono font-bold text-blue-600 bg-blue-50 px-1 rounded">
               {originMode === 'center' ? 'Tâm (0,0)' : `X${formatNumber(customOrigin.x)}, Y${formatNumber(customOrigin.y)}`}
             </span>
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={copyToClipboard}>
-            <Copy className="w-4 h-4 mr-2" /> Sao chép
+        
+        {/* Nút bấm dàn hàng ngang trên mobile bằng grid để tiết kiệm diện tích */}
+        <div className="grid grid-cols-2 gap-2 sm:flex">
+          <Button variant="outline" size="sm" onClick={copyToClipboard} className="text-xs h-9">
+            <Copy className="w-3.5 h-3.5 mr-1.5" /> Sao chép
           </Button>
-          <Button variant="outline" size="sm" onClick={downloadCSV}>
-            <Download className="w-4 h-4 mr-2" /> Xuất CSV
+          <Button variant="outline" size="sm" onClick={downloadCSV} className="text-xs h-9">
+            <Download className="w-3.5 h-3.5 mr-1.5" /> Xuất CSV
           </Button>
         </div>
       </div>
 
       <div className="overflow-x-auto border rounded-lg">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-slate-50">
             <TableRow>
-              <TableHead className="w-16">Lỗ #</TableHead>
-              <TableHead>Góc (°)</TableHead>
-              <TableHead>Tọa độ X</TableHead>
-              <TableHead>Tọa độ Y</TableHead>
-              <TableHead>Khoảng cách</TableHead>
+              {/* Giảm padding của các ô header trên mobile */}
+              <TableHead className="px-2 py-2 text-[10px] sm:text-xs w-10">#</TableHead>
+              <TableHead className="px-2 py-2 text-[10px] sm:text-xs">Góc</TableHead>
+              <TableHead className="px-2 py-2 text-[10px] sm:text-xs text-blue-600">X (G54)</TableHead>
+              <TableHead className="px-2 py-2 text-[10px] sm:text-xs text-blue-600">Y (G54)</TableHead>
+              {/* Ẩn cột khoảng cách trên màn hình cực nhỏ nếu cần, hoặc giữ lại với text nhỏ */}
+              <TableHead className="px-2 py-2 text-[10px] sm:text-xs hidden xs:table-cell text-right">Cự ly</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {holes.map((hole, index) => (
-              <TableRow key={index}>
-                <TableCell className="font-bold">{index + 1}</TableCell>
-                <TableCell>{hole.angle.toFixed(1)}°</TableCell>
-                <TableCell className="font-mono text-blue-700">{formatNumber(hole.relativeX)}</TableCell>
-                <TableCell className="font-mono text-blue-700">{formatNumber(hole.relativeY)}</TableCell>
-                <TableCell className="text-gray-400">
-                  {formatNumber(calculateDistance(hole.relativeX, hole.relativeY))}
-                </TableCell>
-              </TableRow>
-            ))}
+            {holes.map((hole, index) => {
+              const isOrigin = Math.abs(hole.relativeX) < 0.001 && Math.abs(hole.relativeY) < 0.001;
+              return (
+                <TableRow key={index} className={isOrigin ? "bg-blue-50/50" : ""}>
+                  <TableCell className="px-2 py-2.5 font-bold text-xs">{index + 1}</TableCell>
+                  <TableCell className="px-2 py-2.5 text-xs text-gray-600">{hole.angle.toFixed(1)}°</TableCell>
+                  <TableCell className={`px-2 py-2.5 font-mono text-xs ${isOrigin ? 'text-blue-700 font-bold' : 'text-blue-600'}`}>
+                    {formatNumber(hole.relativeX)}
+                  </TableCell>
+                  <TableCell className={`px-2 py-2.5 font-mono text-xs ${isOrigin ? 'text-blue-700 font-bold' : 'text-blue-600'}`}>
+                    {formatNumber(hole.relativeY)}
+                  </TableCell>
+                  <TableCell className="px-2 py-2.5 text-[10px] text-gray-400 text-right hidden xs:table-cell">
+                    {formatNumber(calculateDistance(hole.relativeX, hole.relativeY))}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
 
-      <div className="mt-4 p-3 bg-gray-50 rounded border border-dashed border-gray-200">
-        <p className="text-[10px] text-gray-500 italic">
-          * Lưu ý: Tọa độ X, Y phía trên đã được tính toán dựa trên Gốc tọa độ bạn chọn. Bạn có thể nhập trực tiếp các giá trị này vào lệnh G01/G81 trên máy CNC.
+      <div className="mt-3 p-2 bg-slate-50 rounded border border-dashed border-slate-200">
+        <p className="text-[9px] sm:text-[10px] text-slate-500 leading-relaxed">
+          * Dữ liệu trên dùng để nhập trực tiếp vào máy CNC. 
+          {originMode === 'custom' && " Tọa độ X0 Y0 đã được dời về điểm bạn chọn."}
         </p>
       </div>
     </Card>
