@@ -25,7 +25,6 @@ interface NavSection {
   items: NavItem[];
 }
 
-// Cấu trúc danh sách chức năng - Bạn dễ dàng thêm bớt ở đây
 const navSections: NavSection[] = [
   {
     title: "Toán học & Hình học",
@@ -53,56 +52,61 @@ const navSections: NavSection[] = [
 
 export function Sidebar() {
   const location = useLocation();
-  const [isOpen, setIsOpen] = useState(false); // Quản lý đóng mở trên mobile
+  const [isOpen, setIsOpen] = useState(false);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   return (
     <>
-      {/* NÚT MENU CHO MOBILE - Chỉ hiện trên màn hình nhỏ */}
+      {/* NÚT MENU CHO MOBILE - Tăng z-index lên 60 để luôn nằm trên cùng */}
       <button 
         onClick={toggleSidebar}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-blue-600 text-white rounded-md shadow-lg"
+        className="lg:hidden fixed top-4 left-4 z-[60] p-2 bg-blue-600 text-white rounded-md shadow-lg active:scale-95 transition-transform"
       >
         {isOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      {/* LỚP PHỦ (OVERLAY) - Khi mở menu trên mobile sẽ làm mờ phía sau */}
+      {/* LỚP PHỦ (OVERLAY) - Làm tối nền phía sau */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[40] lg:hidden"
           onClick={toggleSidebar}
         />
       )}
 
       {/* THANH SIDEBAR CHÍNH */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-40
-        w-64 bg-[var(--sidebar)] border-r border-[var(--sidebar-border)] 
+        fixed lg:static inset-y-0 left-0 z-[50]
+        w-64 
+        /* FIX CHÍNH: Ép màu nền đặc bg-white và dark:bg-slate-950 để không bị xuyên thấu */
+        bg-white dark:bg-slate-950 
+        border-r border-slate-200 dark:border-slate-800 
         flex flex-col transition-transform duration-300 ease-in-out
+        /* Thêm bóng đổ mạnh trên mobile để tách biệt khối */
+        shadow-[5px_0_25px_rgba(0,0,0,0.1)] lg:shadow-none
         ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}>
         
-        {/* Header */}
-        <div className="p-6 border-b border-[var(--sidebar-border)] flex items-center gap-3">
+        {/* Header - Giữ nguyên logic của bạn */}
+        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
           <div className="bg-blue-600 p-2 rounded-lg">
             <Calculator className="text-white h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-[var(--sidebar-foreground)]">
+            <h1 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
               CNC Master
             </h1>
-            <p className="text-[10px] text-[var(--muted-foreground)] uppercase font-bold tracking-wider">
-              Thịnh IT
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">
+              Thịnh IT and machine
             </p>
           </div>
         </div>
 
-        {/* Navigation - Danh sách các công cụ */}
-        <nav className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+        {/* Navigation - Đảm bảo màu chữ rõ ràng */}
+        <nav className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-white dark:bg-slate-950">
           {navSections.map((section, idx) => (
             <div key={idx} className="mb-6">
-              <h3 className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] opacity-70">
+              <h3 className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 opacity-70">
                 {section.title}
               </h3>
               <div className="space-y-1">
@@ -114,13 +118,13 @@ export function Sidebar() {
                     <Link
                       key={item.path}
                       to={item.path}
-                      onClick={() => setIsOpen(false)} // Đóng menu sau khi chọn trên mobile
+                      onClick={() => setIsOpen(false)}
                       className={`
                         flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all
                         ${
                           isActive
-                            ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-                            : "text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                            ? "bg-blue-600 text-white shadow-md shadow-blue-200 dark:shadow-none"
+                            : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900"
                         }
                       `}
                     >
@@ -135,10 +139,10 @@ export function Sidebar() {
         </nav>
 
         {/* Footer Sidebar */}
-        <div className="p-4 border-t border-[var(--sidebar-border)] space-y-3 bg-[var(--sidebar-accent)]/20">
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800 space-y-3 bg-slate-50/50 dark:bg-slate-900/50">
           <ThemeToggle />
           <div className="px-2">
-             <div className="text-[10px] text-[var(--muted-foreground)] flex justify-between items-center">
+             <div className="text-[10px] text-slate-500 dark:text-slate-400 flex justify-between items-center">
                 <span>Trạng thái:</span>
                 <span className="flex items-center gap-1 text-green-500">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
