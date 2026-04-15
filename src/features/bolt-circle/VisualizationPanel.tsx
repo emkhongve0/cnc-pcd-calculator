@@ -73,7 +73,7 @@ export function VisualizationPanel({
     // Vẽ (Dùng các hàm vẽ như cũ, sử dụng kích thước logic)
     drawGrid(ctx, logicalWidth, logicalHeight, scale);
     drawAxes(ctx, logicalWidth, logicalHeight, originMode, customOrigin, toCanvasX, toCanvasY); 
-    drawCircle(ctx, logicalWidth, logicalHeight, diameter, scale, toCanvasX, toCanvasY);
+    drawCircle(ctx, diameter, scale, toCanvasX, toCanvasY);
     drawSnapPointIndicators(ctx, pickingOrigin, snapPoints, toCanvasX, toCanvasY);
     drawHoles(ctx, holes, toCanvasX, toCanvasY);
     drawOrigin(ctx, originMode, customOrigin, toCanvasX, toCanvasY);
@@ -156,19 +156,17 @@ export function VisualizationPanel({
   };
 
   const drawCircle = (
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number,
-    currentDiameter: number,
-    currentScale: number,
-    canvasX: (x: number) => number,
-    canvasY: (y: number) => number
+  ctx: CanvasRenderingContext2D,
+  currentDiameter: number,
+  currentScale: number,
+  canvasX: (x: number) => number,
+  canvasY: (y: number) => number
   ) => {
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(canvasX(0), canvasY(0), (currentDiameter / 2) * currentScale, 0, 2 * Math.PI);
-    ctx.stroke();
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(canvasX(0), canvasY(0), (currentDiameter / 2) * currentScale, 0, 2 * Math.PI);
+  ctx.stroke();
   };
 
   const drawHoles = (
